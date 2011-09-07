@@ -87,7 +87,13 @@
 ;; -----------------------------------------------
 ;; Exported  - - - - - - - - - - - - - - - - - - -
 (define-exported-function $list-keys (bucket)
-  (request-url-suffix (make-url-suffix bucket nil :get-data "keys=true")))
+  ;; FIX: Why is this so slow? Yason's fault?
+  ;; FIX: We need to catch HTTP status and handle it.
+  (let* ((json-string 
+           (request-url-suffix (make-url-suffix bucket nil :get-data "keys=true")))
+         (json-hash-table
+           (yason:parse json-string)))
+    (gethash "keys" json-hash-table)))
 
 ;; -----------------------------------------------
 ;; LINKS -----------------------------------------
