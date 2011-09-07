@@ -28,14 +28,18 @@
 ;; -----------------------------------------------
 ;; URLS ------------------------------------------
 ;; -----------------------------------------------
-(define-function make-url-suffix (bucket key &key (get-data nil))
-  (format nil "/riak/~a~a~a" bucket
-          (if key
-            (concatenate 'string "/" key)
-            "")
-          (if get-data
-            (concatenate 'string "?" get-data)
-            "")))
+(define-function make-url-suffix (bucket key &key (get-data nil) (wrap nil))
+  (let ((raw-url-suffix
+          (format nil "/riak/~a~a~a" bucket
+                  (if key
+                    (concatenate 'string "/" key)
+                    "")
+                  (if get-data
+                    (concatenate 'string "?" get-data)
+                    ""))))
+    (if wrap
+      (concatenate 'string "<" raw-url-suffix ">")
+      raw-url-suffix)))
 
 ;; -----------------------------------------------
 ;; RESPONSES -------------------------------------
@@ -58,12 +62,14 @@
 ;; -----------------------------------------------
 (define-function request-url-suffix (url-suffix &key (method :get)
                                                      (content nil)
-                                                     (content-type "text/plain"))
+                                                     (content-type "text/plain")
+                                                     (additional-headers nil))
   (parse-http-response
     (http-request (format nil "~a:~a~a" *riak-host* *riak-port* url-suffix)
-                  :method       method
-                  :content-type content-type
-                  :content      content)))
+                  :method             method
+                  :additional-headers additional-headers
+                  :content-type       content-type
+                  :content            content)))
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
 (define-exported-function $request (bucket key &optional (value nil))
@@ -73,11 +79,11 @@
                       ,@(when value 
                           (append
                             (list :method :post 
-                                  :content (or (and is-hash-table
-                                                    (yason::encode-to-string value))
-                                               value))
+                                  :content (if is-hash-table
+                                             (yason::encode-to-string value)
+                                             value))
                             (when is-hash-table
-                                 '(:content-type "application/json")))))))))
+                              '(:content-type "application/json")))))))))
 
 (define-exported-function $delete (bucket key)
   (request-url-suffix (make-url-suffix bucket key) :method :delete))
@@ -98,6 +104,18 @@
 ;; -----------------------------------------------
 ;; LINKS -----------------------------------------
 ;; -----------------------------------------------
+(define-function link-header (bucket key riak-tag)
+  (concatenate 'string 
+    (make-url-suffix bucket key :wrap t)
+    "; riaktag=\""
+    riak-tag
+    "\""))
+
+;; Exported  - - - - - - - - - - - - - - - - - - -
+(define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key)
+  (request-url-suffix (make-url-suffix from-bucket from-key)
+    :method :put
+    :additional-headers `(("Link" . ,(link-header to-bucket to-key riak-tag)))))
 
 ;; -----------------------------------------------
 ;; TESTS -----------------------------------------
