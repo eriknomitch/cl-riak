@@ -112,10 +112,14 @@
     "\""))
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
-(define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key)
+(define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key content)
   (request-url-suffix (make-url-suffix from-bucket from-key)
     :method :put
+    :content content
     :additional-headers `(("Link" . ,(link-header to-bucket to-key riak-tag)))))
+
+(define-exported-function link-test ()
+  ($link "test" "foo" "friend" "test" "bar"))
 
 ;; -----------------------------------------------
 ;; TESTS -----------------------------------------
