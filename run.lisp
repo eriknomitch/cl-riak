@@ -72,6 +72,7 @@
                   :content            content)))
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
+;; FIX: This will probably remove any links when we update the value: http://wiki.basho.com/Links-and-Link-Walking.html
 (define-exported-function $request (bucket key &optional (value nil))
   (let ((is-hash-table (typep value 'hash-table)))
     (apply #'request-url-suffix
@@ -118,12 +119,13 @@
     :content content
     :additional-headers `(("Link" . ,(link-header to-bucket to-key riak-tag)))))
 
-(define-exported-function link-test ()
-  ($link "test" "foo" "friend" "test" "bar"))
-
 ;; -----------------------------------------------
 ;; TESTS -----------------------------------------
 ;; -----------------------------------------------
+(define-exported-function link-test ()
+  ($link "test" "foo" "friend" "test" "bar" "This is foo->bar link"))
+
+;; - - - - - - - - - - - - - - - - - - - - - - - -
 ($request "test" "foo" "This is foo.")
 ($request "test" "bar" "This is bar.")
 
