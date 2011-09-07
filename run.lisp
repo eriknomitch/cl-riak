@@ -7,7 +7,8 @@
   (:use #:cl
         #:utility
         #:drakma
-        #:flexi-streams))
+        #:flexi-streams
+        #:yason))
 
 (in-package #:cl-riak)
 
@@ -51,7 +52,7 @@
                   :content-type content-type
                   :content      content)))
 
-;; External  - - - - - - - - - - - - - - - - - - -
+;; Exported  - - - - - - - - - - - - - - - - - - -
 (define-exported-function $request (bucket key &optional (value nil))
   (apply #'request-url-suffix
          (append `(,(make-url-suffix bucket key) ,@(when value (list :method :post :content value))))))
@@ -74,3 +75,4 @@
 
 (format t "~a~%" *get*)
 (format t "~a~%" *add*)
+
