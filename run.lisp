@@ -27,6 +27,7 @@
 ;; RESPONSES -------------------------------------
 ;; -----------------------------------------------
 (define-function parse-http-response (http-response)
+  ;; FIX: We need to handle "Not Found"
   (typecase http-response
     ;; This is a normal response
     (string
@@ -42,11 +43,13 @@
 ;; REQUESTS --------------------------------------
 ;; -----------------------------------------------
 (define-function request-url-suffix (url-suffix &key (method :get)
-                                                     (content nil))
+                                                     (content nil)
+                                                     (content-type "text/plain"))
   (parse-http-response
     (http-request (format nil "~a:~a~a" *riak-host* *riak-port* url-suffix)
-                  :method  method
-                  :content content)))
+                  :method       method
+                  :content-type content-type
+                  :content      content)))
 
 ;; External  - - - - - - - - - - - - - - - - - - -
 (define-exported-function $request (bucket key &optional (value nil))
@@ -56,6 +59,10 @@
 
 (define-exported-function $delete (bucket key)
   (request-url-suffix (make-url-suffix bucket key) :method :delete))
+
+;; -----------------------------------------------
+;; LINKS -----------------------------------------
+;; -----------------------------------------------
 
 ;; -----------------------------------------------
 ;; TEST ------------------------------------------
