@@ -13,6 +13,13 @@
 (in-package #:cl-riak)
 
 ;; -----------------------------------------------
+;; EXTEND->YASON ---------------------------------
+;; -----------------------------------------------
+(defun yason::encode-to-string (hash-table)
+  (with-output-to-string (stream)
+    (yason:encode hash-table stream)))
+
+;; -----------------------------------------------
 ;; GLOBALS ---------------------------------------
 ;; -----------------------------------------------
 (defvar *riak-host* "http://127.0.0.1")
@@ -54,8 +61,15 @@
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
 (define-exported-function $request (bucket key &optional (value nil))
-  (apply #'request-url-suffix
-         (append `(,(make-url-suffix bucket key) ,@(when value (list :method :post :content value))))))
+  (let ((is-hash-table (typep value 'hash-table)))
+    (apply #'request-url-suffix
+           (append `(,(make-url-suffix bucket key) ,@(when value 
+                                                       (append
+                                                         (list :method :post :content (or (and is-hash-table
+                                                                                               (yason::encode-to-string value))
+                                                                                          value))
+                                                         (and is-hash-table
+                                                              '(:content-type "application/json")))))))))
 
 (define-exported-function $delete (bucket key)
   (request-url-suffix (make-url-suffix bucket key) :method :delete))
@@ -69,6 +83,10 @@
 ;; -----------------------------------------------
 ($request "test" "foo" "This is foo.")
 ($request "test" "bar" "This is bar.")
+
+(defvar *baz* (make-hash-table))
+(setf (gethash "foo" *baz*) "bar")
+($request "test" "baz" *baz*)
 
 (defvar *get* ($request "test" "foo"))
 (defvar *add* ($request "test" "bar" "This is a new bar."))
