@@ -28,8 +28,14 @@
 ;; -----------------------------------------------
 ;; URLS ------------------------------------------
 ;; -----------------------------------------------
-(define-function make-url-suffix (bucket key)
-  (format nil "/riak/~a/~a" bucket key))
+(define-function make-url-suffix (bucket key &key (get-data nil))
+  (format nil "/riak/~a~a~a" bucket
+          (if key
+            (concatenate 'string "/" key)
+            "")
+          (if get-data
+            (concatenate 'string "?" get-data)
+            "")))
 
 ;; -----------------------------------------------
 ;; RESPONSES -------------------------------------
@@ -63,23 +69,32 @@
 (define-exported-function $request (bucket key &optional (value nil))
   (let ((is-hash-table (typep value 'hash-table)))
     (apply #'request-url-suffix
-           (append `(,(make-url-suffix bucket key) ,@(when value 
-                                                       (append
-                                                         (list :method :post :content (or (and is-hash-table
-                                                                                               (yason::encode-to-string value))
-                                                                                          value))
-                                                         (and is-hash-table
-                                                              '(:content-type "application/json")))))))))
+           (append `(,(make-url-suffix bucket key)
+                      ,@(when value 
+                          (append
+                            (list :method :post 
+                                  :content (or (and is-hash-table
+                                                    (yason::encode-to-string value))
+                                               value))
+                            (when is-hash-table
+                                 '(:content-type "application/json")))))))))
 
 (define-exported-function $delete (bucket key)
   (request-url-suffix (make-url-suffix bucket key) :method :delete))
+
+;; -----------------------------------------------
+;; INFORMATION -----------------------------------
+;; -----------------------------------------------
+;; Exported  - - - - - - - - - - - - - - - - - - -
+(define-exported-function $list-keys (bucket)
+  (request-url-suffix (make-url-suffix bucket nil :get-data "keys=true")))
 
 ;; -----------------------------------------------
 ;; LINKS -----------------------------------------
 ;; -----------------------------------------------
 
 ;; -----------------------------------------------
-;; TEST ------------------------------------------
+;; TESTS -----------------------------------------
 ;; -----------------------------------------------
 ($request "test" "foo" "This is foo.")
 ($request "test" "bar" "This is bar.")
