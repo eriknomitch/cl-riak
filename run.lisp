@@ -1,6 +1,8 @@
 ;; ===============================================
 ;; CL-RIAK =======================================
 ;; ===============================================
+(in-package #:cl-user)
+
 (defpackage #:cl-riak
   (:use #:cl
         #:utility
@@ -19,13 +21,13 @@
 ;; REQUESTS --------------------------------------
 ;; -----------------------------------------------
 (define-exported-function request (url-suffix)
-  (octets-to-string (http-request (format nil "~a:~a~a" *riak-host* *riak-port* url-suffix))))
+  (octets-to-string 
+    (http-request (format nil "~a:~a~a" *riak-host* *riak-port* url-suffix))))
 
 ;; -----------------------------------------------
 ;; TEST ------------------------------------------
 ;; -----------------------------------------------
 (defvar *test* (request "/riak/test"))
-
 
 ;;(setq *header-stream* *standard-output*)
 ;;(setf *drakma-default-external-format* :utf-8)

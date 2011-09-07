@@ -4,4 +4,4 @@ if [[ ! -f bootstrap.core ]] ; then
   ./bootstrap
 fi
 
-sbcl --noinform --core bootstrap.core --load run.lisp
+sbcl --noinform --core bootstrap.core --load run.lisp --eval "(in-package #:cl-riak)"
