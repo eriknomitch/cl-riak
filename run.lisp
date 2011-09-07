@@ -42,22 +42,6 @@
                   :method  method
                   :content content)))
 
-;;   (let ((http-response
-;;           (http-request (format nil "~a:~a~a" *riak-host* *riak-port* url-suffix)
-;;                         :method     method
-;;                         :content "this is another test")))
-;;     (typecase http-response
-;;       ;; This is a response
-;;       (string
-;;         http-response)
-;;       ;; This is the JSON description thing
-;;       ((simple-array (unsigned-byte 8))
-;;         (format t "~a~%" (type-of http-response))
-;;         (octets-to-string http-response))
-;;       ;; This is unknown
-;;       (otherwise
-;;         http-response))))
-
 (define-exported-function request (bucket key &optional (value nil))
   (if value
     (request-url-suffix (make-url-suffix bucket key) :method :post :content value)
@@ -69,7 +53,5 @@
 (defvar *get* (request "test" "foo"))
 (defvar *add* (request "test" "bar" "test1"))
 
-;;(setq *header-stream* *standard-output*)
-;;(setf *drakma-default-external-format* :utf-8)
-
-;;(format t "~a~%" *get*)
+(format t "~a~%" *get*)
+(format t "~a~%" *add*)
