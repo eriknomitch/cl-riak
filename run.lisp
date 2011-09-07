@@ -53,9 +53,8 @@
 
 ;; External  - - - - - - - - - - - - - - - - - - -
 (define-exported-function $request (bucket key &optional (value nil))
-  (if value
-    (request-url-suffix (make-url-suffix bucket key) :method :post :content value)
-    (request-url-suffix (make-url-suffix bucket key))))
+  (apply #'request-url-suffix
+         (append `(,(make-url-suffix bucket key) ,@(when value (list :method :post :content value))))))
 
 (define-exported-function $delete (bucket key)
   (request-url-suffix (make-url-suffix bucket key) :method :delete))
