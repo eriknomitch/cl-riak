@@ -1,1 +1,1 @@
-vim *.lisp bootstrap run vim-all
+vim *.lisp bootstrap run vim-all README
