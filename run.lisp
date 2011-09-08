@@ -80,7 +80,7 @@
                   :content            content)))
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
-;; FIX: This will probably remove any links when we update the value: http://wiki.basho.com/Links-and-Link-Walking.html
+;; FIX: This probably remove any links when we update the value: http://wiki.basho.com/Links-and-Link-Walking.html
 (define-exported-function $request (bucket key &optional (value nil))
   (let ((is-hash-table (typep value 'hash-table)))
     (apply #'request-url-suffix
@@ -145,6 +145,18 @@
 
 (define-exported-function $link-walk (bucket key &rest link-tuples)
   (request-url-suffix (make-url-suffix bucket key :link-tuples link-tuples)))
+
+;; -----------------------------------------------
+;; METACLASS->RIAK -------------------------------
+;; -----------------------------------------------
+(defclass riak (standard-class)
+  ())
+
+(defmethod sb-mop:validate-superclass ((class riak) (super-class standard-class))
+  t)
+
+(defmethod initialize-instance :after ((riak riak) &key)
+  )
 
 ;; -----------------------------------------------
 ;; TESTS -----------------------------------------
