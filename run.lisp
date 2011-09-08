@@ -131,6 +131,7 @@
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
 ;; CHECK: This method of handling existing content is almost certainly not the correct way to do this.
+;; FIX: This overwrites existing links.
 (define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key &key (content nil))
   (if content
     ;; If :content was passed, ensure it
@@ -149,7 +150,8 @@
 ;; TESTS -----------------------------------------
 ;; -----------------------------------------------
 (define-exported-function link-test ()
-  ($link "test" "foo" "friend" "test" "bar"))
+  ($link "test" "foo" "friend" "test" "bar")
+  ($link "test" "foo" "friend" "test" "baz"))
 
 (define-exported-function link-walk-test ()
   ($link-walk "test" "foo" '("test" "friend" "_")))
@@ -157,6 +159,8 @@
 ;; - - - - - - - - - - - - - - - - - - - - - - - -
 ($request "test" "foo" "This is foo.")
 ($request "test" "bar" "This is bar.")
+
+(link-test)
 
 (defvar *baz* (make-hash-table))
 (setf (gethash "foo" *baz*) "bar")
