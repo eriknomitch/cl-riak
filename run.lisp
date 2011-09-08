@@ -28,11 +28,14 @@
 ;; -----------------------------------------------
 ;; URLS ------------------------------------------
 ;; -----------------------------------------------
-(define-function make-url-suffix (bucket key &key (get-data nil) (wrap nil))
+(define-function make-url-suffix (bucket key &key (link-tuples nil) (get-data nil) (wrap nil))
   (let ((raw-url-suffix
-          (format nil "/riak/~a~a~a" bucket
+          (format nil "/riak/~a~a~a~a" bucket
                   (if key
                     (concatenate 'string "/" key)
+                    "")
+                  (if link-tuples
+                    (concatenate 'string "/" (format-link-tuples link-tuples))
                     "")
                   (if get-data
                     (concatenate 'string "?" get-data)
@@ -112,8 +115,17 @@
     riak-tag
     "\""))
 
+(define-function format-link-tuples (link-tuples)
+  (concatenate 'string
+    (list-delimited-by
+      (mapcar #'(lambda (link-tuple)
+                  (list-delimited-by link-tuple ","))
+              link-tuples)
+      "/")
+    "/"))
+
 ;; Exported  - - - - - - - - - - - - - - - - - - -
-;; CHECK: Content not replacing might not be the correct way to do this if it isn't passed.
+;; CHECK: This method of handling existing content is almost certainly not the correct way to do this.
 (define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key &key (content nil))
   (if content
     ;; If :content was passed, ensure it
@@ -124,6 +136,9 @@
     ;; If :content was not passed, we'll try to find existing content
     (let ((existing-content ($request from-bucket from-key)))
       ($link from-bucket from-key riak-tag to-bucket to-key :content (or existing-content "")))))
+
+(define-exported-function $link-walk (bucket key &rest link-tuples)
+  (request-url-suffix (make-url-suffix bucket key :link-tuples link-tuples)))
 
 ;; -----------------------------------------------
 ;; TESTS -----------------------------------------
