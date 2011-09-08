@@ -20,6 +20,11 @@
     (yason:encode hash-table stream)))
 
 ;; -----------------------------------------------
+;; DEFINE->GENERICS ------------------------------
+;; -----------------------------------------------
+(define-generic format-link-tuples (link-tuples))
+
+;; -----------------------------------------------
 ;; GLOBALS ---------------------------------------
 ;; -----------------------------------------------
 (defvar *riak-host* "http://127.0.0.1")
@@ -145,6 +150,9 @@
 ;; -----------------------------------------------
 (define-exported-function link-test ()
   ($link "test" "foo" "friend" "test" "bar"))
+
+(define-exported-function link-walk-test ()
+  ($link-walk "test" "foo" '("test" "friend" "_")))
 
 ;; - - - - - - - - - - - - - - - - - - - - - - - -
 ($request "test" "foo" "This is foo.")
