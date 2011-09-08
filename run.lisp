@@ -113,17 +113,23 @@
     "\""))
 
 ;; Exported  - - - - - - - - - - - - - - - - - - -
-(define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key content)
-  (request-url-suffix (make-url-suffix from-bucket from-key)
-    :method :put
-    :content content
-    :additional-headers `(("Link" . ,(link-header to-bucket to-key riak-tag)))))
+;; CHECK: Content not replacing might not be the correct way to do this if it isn't passed.
+(define-exported-function $link (from-bucket from-key riak-tag to-bucket to-key &key (content nil))
+  (if content
+    ;; If :content was passed, ensure it
+    (request-url-suffix (make-url-suffix from-bucket from-key)
+      :method :put
+      :content content
+      :additional-headers `(("Link" . ,(link-header to-bucket to-key riak-tag))))
+    ;; If :content was not passed, we'll try to find existing content
+    (let ((existing-content ($request from-bucket from-key)))
+      ($link from-bucket from-key riak-tag to-bucket to-key :content (or existing-content "")))))
 
 ;; -----------------------------------------------
 ;; TESTS -----------------------------------------
 ;; -----------------------------------------------
 (define-exported-function link-test ()
-  ($link "test" "foo" "friend" "test" "bar" "This is foo->bar link"))
+  ($link "test" "foo" "friend" "test" "bar"))
 
 ;; - - - - - - - - - - - - - - - - - - - - - - - -
 ($request "test" "foo" "This is foo.")
